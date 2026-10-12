@@ -26,18 +26,6 @@ MiniMax-H3 (≈33B DiT, text-to-video+audio).
     <th align="center" width="33%">PDD step 2500 EMA, 8 NFE</th>
   </tr>
   <tr>
-    <td colspan="3"><img src="assets/grid_001.gif" width="100%"></td>
-  </tr>
-  <tr>
-    <td colspan="3"><sub>Close-up shot of hands and bike parts. Static camera with no visible movement. The clip shows a person's hands performing a bicycle hub conversion. The background is a blurred blue workshop table. The hands, in focus, remove a red 15 by 100 QR axle from its housing. Next to the hands, there's a red bike hub, presumably the Easton M1 referenced in the voice-over. Also visible are a yellow screwdriver and other out-of-focus tools. The removed axle is black with a metallic sheen and threaded at one end. The person's actions are methodical and precise, indicative of experience with the task. The workshop lighting is bright and even, highlighting the components without harsh shadows, emphasizing the tutorial nature of the video. The overall color scheme is dominated by the blue of the work surface and the red of the bike hub.</sub></td>
-  </tr>
-  <tr>
-    <td colspan="3"><img src="assets/grid_002.gif" width="100%"></td>
-  </tr>
-  <tr>
-    <td colspan="3"><sub>/create prompt: A suspenseful Christmas mystery where a detective uncovers a series of cryptic messages that lead to a long-lost treasure, weaving a tale of intrigue and holiday cheer, candlelit rooms, 4K,</sub></td>
-  </tr>
-  <tr>
     <td colspan="3"><img src="assets/grid_004.gif" width="100%"></td>
   </tr>
   <tr>
@@ -60,6 +48,18 @@ MiniMax-H3 (≈33B DiT, text-to-video+audio).
   </tr>
   <tr>
     <td colspan="3"><sub>No camera movement, stationary frames, focus shifts between character and paper. Close-up and medium shots, static frames, focused on character. The video features a cartoon character, likely from an animated educational or entertainment content, in a classroom setting. The character, a white figure with minimal detail and a large red circle representing its mouth, is seen holding a piece of paper in the first frame, standing beside a female character with yellow hair, a pink and white striped shirt, expressing disinterest. In subsequent frames, the focus is on the paper with fill-in-the-blank sections titled 'The Best Book Ever,' which the character appears to be excited about, gesticulating joyfully. The paper has blank spaces for students to complete sentences about any book they are reporting on. The environment is simple with plain backgrounds, primarily in white. The colors are flat and cartoonish with bold outlines emphasizing the subjects.</sub></td>
+  </tr>
+  <tr>
+    <td colspan="3"><img src="assets/grid_001.gif" width="100%"></td>
+  </tr>
+  <tr>
+    <td colspan="3"><sub>Close-up shot of hands and bike parts. Static camera with no visible movement. The clip shows a person's hands performing a bicycle hub conversion. The background is a blurred blue workshop table. The hands, in focus, remove a red 15 by 100 QR axle from its housing. Next to the hands, there's a red bike hub, presumably the Easton M1 referenced in the voice-over. Also visible are a yellow screwdriver and other out-of-focus tools. The removed axle is black with a metallic sheen and threaded at one end. The person's actions are methodical and precise, indicative of experience with the task. The workshop lighting is bright and even, highlighting the components without harsh shadows, emphasizing the tutorial nature of the video. The overall color scheme is dominated by the blue of the work surface and the red of the bike hub.</sub></td>
+  </tr>
+  <tr>
+    <td colspan="3"><img src="assets/grid_002.gif" width="100%"></td>
+  </tr>
+  <tr>
+    <td colspan="3"><sub>A suspenseful Christmas mystery where a detective uncovers a series of cryptic messages that lead to a long-lost treasure, weaving a tale of intrigue and holiday cheer, candlelit rooms, 4K,</sub></td>
   </tr>
 </table>
 
@@ -121,6 +121,10 @@ PDD has a data-free algorithm, so only prompts are needed for training, not vide
 
 ### Results
 The model was trained on 2500 unique trajectories with a gradient accumulation step = number of PDD step in trajectrory, with one trajectory per device, for 8 days of compute on 4 GPUs H100.
+
+After 2500 steps the 8 NFE student visually matches the quality of the 64 NFE teacher. For the same seed the global view
+(composition, camera, layout) may differ from the teacher's video, which is expected for PDD: the student is not trained to reproduce the teacher's sample for
+a given noise, only to follow a valid trajectory.
 
 
 #### Domain adaptation
