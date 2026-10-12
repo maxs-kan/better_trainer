@@ -30,27 +30,28 @@ from src.models.net.minimax_h3 import HEAD_NAMES, time_grid
 
 
 def build_html(output: Path, prompts: list[dict], runs: list["Run"]) -> None:
-    def cell(name: str, index: int) -> str:
-        if not (output / name / f"{index:03d}.mp4").exists():
-            return '<td class="missing">missing</td>'
-        return (f'<td data-col="{html.escape(name)}"><video src="{name}/{index:03d}.mp4" muted loop '
+    def cell(run: "Run", index: int) -> str:
+        name = html.escape(run.name)
+        caption = f'<div class="cap">{html.escape(run.title or run.name)}</div>'
+        if not (output / run.name / f"{index:03d}.mp4").exists():
+            return f'<td class="missing" data-col="{name}">{caption}missing</td>'
+        return (f'<td data-col="{name}">{caption}<video src="{name}/{index:03d}.mp4" muted loop '
                 f'playsinline preload="metadata"></video></td>')
 
-    head = "".join(
-        f'<th data-col="{html.escape(run.name)}">{html.escape(run.name)}<div class="sub">{run.nfe} NFE</div></th>'
-        for run in runs
-    )
     toggles = "".join(
-        f'<label><input type="checkbox" checked data-toggle="{html.escape(run.name)}"> {html.escape(run.name)}</label>'
+        f'<label class="chip"><input type="checkbox" checked data-toggle="{html.escape(run.name)}">'
+        f'{html.escape(run.title or run.name)}</label>'
         for run in runs
     )
     rows = "".join(
-        f'<tr><td class="prompt"><b>#{p["index"]}</b> <button class="row-play">▶ row</button>'
+        f'<tr><td class="prompt"><div class="row-head"><b>#{p["index"]}</b>'
+        f'<button class="row-play" title="Restart this row in sync">▶</button>'
+        f'<button class="row-pause" title="Pause this row">❚❚</button></div>'
         f'<div>{html.escape(p["prompt"])}</div><div class="sub">seed {p["seed"]}</div></td>'
-        + "".join(cell(run.name, p["index"]) for run in runs) + "</tr>"
+        + "".join(cell(run, p["index"]) for run in runs) + "</tr>"
         for p in prompts
     )
-    page = PAGE.replace("{{HEAD}}", head).replace("{{ROWS}}", rows).replace("{{TOGGLES}}", toggles)
+    page = PAGE.replace("{{ROWS}}", rows).replace("{{TOGGLES}}", toggles)
     tmp = output / f".index.html.{os.getpid()}"
     tmp.write_text(page)
     os.replace(tmp, output / "index.html")
@@ -63,25 +64,32 @@ PAGE = """<!doctype html>
 :root { --bg:#fff; --fg:#1d1d1f; --muted:#6e6e73; --line:#e5e5ea; --panel:#f5f5f7; --accent:#0a66d8; }
 @media (prefers-color-scheme: dark) { :root { --bg:#111214; --fg:#ececf1; --muted:#9a9aa3; --line:#2a2b30; --panel:#1b1c20; --accent:#5aa2ff; } }
 body { margin:0; background:var(--bg); color:var(--fg); font:14px/1.4 system-ui, sans-serif; }
-header { position:sticky; top:0; z-index:2; background:var(--panel); border-bottom:1px solid var(--line);
-         padding:10px 16px; display:flex; flex-wrap:wrap; gap:10px 18px; align-items:center; }
-header label { white-space:nowrap; } button { cursor:pointer; }
+header { position:sticky; top:0; z-index:2; background:var(--panel); border-bottom:1px solid var(--line); padding:10px 16px; }
+.controls, .toggles { display:flex; flex-wrap:wrap; gap:8px 16px; align-items:center; }
+.toggles { gap:8px; margin-top:10px; }
+header label { white-space:nowrap; display:inline-flex; align-items:center; gap:6px; } button { cursor:pointer; }
+.chip { border:1px solid var(--line); border-radius:999px; padding:4px 12px 4px 8px; background:var(--bg); font-size:13px; }
+.chip input { margin:0; }
+.row-head { display:flex; align-items:center; gap:6px; margin-bottom:6px; }
+.row-head button { min-width:32px; }
 .wrap { overflow-x:auto; padding:0 16px 40px; }
-table { border-collapse:collapse; } th, td { border-bottom:1px solid var(--line); padding:8px; vertical-align:top; }
-th { position:sticky; top:0; text-align:left; font-weight:600; }
+table { border-collapse:collapse; } td { border-bottom:1px solid var(--line); padding:12px 8px; vertical-align:top; }
 td.prompt { width:260px; min-width:200px; font-size:13px; }
-video { width:var(--w, 420px); display:block; border-radius:6px; background:#000; cursor:pointer; }
+video { width:var(--w, 630px); display:block; border-radius:6px; background:#000; cursor:pointer; }
 video.loud { outline:3px solid var(--accent); }
-.sub, .cap { color:var(--muted); font-size:12px; font-weight:400; } .missing { color:var(--muted); }
+.sub { color:var(--muted); font-size:12px; } .missing { color:var(--muted); }
+.cap { font-size:13px; font-weight:600; margin-bottom:4px; }
 .hidden { display:none; }
 </style></head><body>
 <header>
-  <button id="play">▶ Play all</button><button id="pause">❚❚ Pause</button><button id="restart">⟲ Restart</button>
-  <label>Width <input id="width" type="range" min="200" max="900" value="420"></label>
-  <span class="sub">click a video = sound on for it only · ▶ row = restart that row in sync</span>
-  <span>{{TOGGLES}}</span>
+  <div class="controls">
+    <button id="play">▶ Play all</button><button id="pause">❚❚ Pause</button><button id="restart">⟲ Restart</button>
+    <label>Width <input id="width" type="range" min="200" max="1200" value="630"></label>
+    <span class="sub">Click a video to hear it</span>
+  </div>
+  <div class="toggles">{{TOGGLES}}</div>
 </header>
-<div class="wrap"><table><thead><tr><th>prompt</th>{{HEAD}}</tr></thead><tbody>{{ROWS}}</tbody></table></div>
+<div class="wrap"><table><tbody>{{ROWS}}</tbody></table></div>
 <script>
 const videos = () => [...document.querySelectorAll('td:not(.hidden) video')];
 const sync = (list) => { list.forEach(v => { v.currentTime = 0; }); list.forEach(v => v.play()); };
@@ -89,6 +97,9 @@ document.getElementById('play').onclick = () => videos().forEach(v => v.play());
 document.getElementById('pause').onclick = () => document.querySelectorAll('video').forEach(v => v.pause());
 document.getElementById('restart').onclick = () => sync(videos());
 document.getElementById('width').oninput = (e) => document.body.style.setProperty('--w', e.target.value + 'px');
+document.querySelectorAll('.row-pause').forEach(b => b.onclick = () => {
+  b.closest('tr').querySelectorAll('video').forEach(v => v.pause());
+});
 document.querySelectorAll('.row-play').forEach(b => b.onclick = () => {
   document.querySelectorAll('video').forEach(v => v.pause());
   sync([...b.closest('tr').querySelectorAll('td:not(.hidden) video')]);
@@ -346,6 +357,7 @@ class Run:
     lora_dir: Path | None = None
     ema: bool = False
     block_size: int | None = None
+    title: str = ""
 
 
 def main() -> None:
@@ -369,14 +381,17 @@ def main() -> None:
     torch.cuda.set_device(device)
 
     prompts = load_cached_prompts(args.prompt_cache, args.num_prompts, args.seed)
-    runs = [Run(f"base_{n}nfe", n) for n in args.base_nfe]
-    runs += [Run(f"base_{n}x2_midpoint_{2 * n}nfe", n, midpoint=True) for n in args.base_midpoint_steps]
+    runs = [Run(f"base_{n}nfe", n, title=f"Base, {n} NFE") for n in args.base_nfe]
+    runs += [Run(f"base_{n}x2_midpoint_{2 * n}nfe", n, midpoint=True, title=f"Base, {n} midpoint steps ({2 * n} NFE)")
+             for n in args.base_midpoint_steps]
     for lora_dir in args.lora:
         config = json.loads((lora_dir / "pdd_config.json").read_text())
         for block_size in args.block_size:
             nfe = config["trajectory_steps"] // block_size
-            runs.append(Run(f"pdd_{lora_dir.name}_L{block_size}_{nfe}nfe", nfe, lora_dir=lora_dir, block_size=block_size))
-            runs.append(Run(f"pdd_{lora_dir.name}_ema_L{block_size}_{nfe}nfe", nfe, lora_dir=lora_dir, ema=True, block_size=block_size))
+            runs.append(Run(f"pdd_{lora_dir.name}_L{block_size}_{nfe}nfe", nfe, lora_dir=lora_dir, block_size=block_size,
+                            title=f"PDD step {config['step']}, {nfe} NFE"))
+            runs.append(Run(f"pdd_{lora_dir.name}_ema_L{block_size}_{nfe}nfe", nfe, lora_dir=lora_dir, ema=True,
+                            block_size=block_size, title=f"PDD step {config['step']} EMA, {nfe} NFE"))
     args.output.mkdir(parents=True, exist_ok=True)
     for run in runs:
         (args.output / run.name).mkdir(exist_ok=True)
