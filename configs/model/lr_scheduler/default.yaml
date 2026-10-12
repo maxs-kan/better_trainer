@@ -1,0 +1,7 @@
+defaults:
+  - scheduler_schema
+  - scheduler: cosine_warm
+  - _self_
+
+interval: step
+frequency: 1

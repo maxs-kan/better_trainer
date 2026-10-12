@@ -1,0 +1,3 @@
+_target_: src.losses.snr_gamma.SNRGammaLoss
+snr_gamma: 5.0
+mask_gamma: 0.8

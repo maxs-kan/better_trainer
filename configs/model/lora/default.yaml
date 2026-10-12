@@ -1,0 +1,8 @@
+r: 16
+lora_alpha: 16
+lora_dropout: 0.
+use_rslora: false
+init_lora_weights: true
+bias: none
+target_modules: ???
+exclude_modules: null

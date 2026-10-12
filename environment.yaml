@@ -1,0 +1,10 @@
+name: better_trainer
+
+channels:
+  - conda-forge
+  - nodefaults
+
+
+dependencies:
+  - python=3.11
+  - uv

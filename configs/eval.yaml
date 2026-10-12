@@ -1,0 +1,21 @@
+# @package _global_
+
+defaults:
+  - data: pdd_prompts
+  - model: pdd_h3
+  - logger: null
+  - callbacks: tqdm_progress_bar
+  - trainer: gpu
+  - paths: default
+  - extras: default
+  - hydra: default
+  - _self_
+
+task_name: "eval"
+
+tags: ["dev"]
+
+seed: 42
+
+# passing checkpoint path is necessary for evaluation
+ckpt_path: null

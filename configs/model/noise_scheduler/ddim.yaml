@@ -1,0 +1,16 @@
+_target_: diffusers.DDIMScheduler
+num_train_timesteps: 1000
+beta_start: 0.00085
+beta_end: 0.012
+beta_schedule: "scaled_linear"
+trained_betas: null
+clip_sample: false
+clip_sample_range: 1.
+set_alpha_to_one: false
+steps_offset: 1
+prediction_type: "epsilon"
+thresholding: false
+dynamic_thresholding_ratio: 0.995
+sample_max_value: 1.0
+timestep_spacing: "leading"
+rescale_betas_zero_snr: false

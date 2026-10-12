@@ -1,0 +1,6 @@
+_target_: torch.optim.AdamW
+_partial_: true
+_convert_: all
+lr: 0.0001
+weight_decay: 0.001
+betas: [0.9, 0.999]

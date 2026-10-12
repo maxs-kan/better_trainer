@@ -1,0 +1,7 @@
+_target_: src.models.module.base_module.BaseModule
+
+defaults:
+  - optimizer: adamw
+  - lr_scheduler: null
+  - optim_param_groups: null
+  - _self_

@@ -1,0 +1,63 @@
+# @package _global_
+
+
+defaults:
+  - override /data: pdd_prompts
+  - override /model: pdd_h3
+  - override /trainer: fsdp
+  - override /callbacks: ema
+
+task_name: "pdd_h3_t2va"
+tags: ["t2va"]
+seed: 42
+
+paths:
+  h3_model_dir: ???
+  prompt_cache_train: ???
+
+
+callbacks:
+  model_checkpoint:
+    every_n_train_steps: 100
+
+
+trainer:
+  devices: [0,1,2,3]
+  strategy:
+    data_parallel_size: 4
+  min_epochs: 1
+  max_epochs: 100
+  log_every_n_steps: 1
+  limit_val_batches: 0
+  num_sanity_val_steps: 0
+  gradient_clip_val: 1.0
+  # detect_anomaly: true
+  # overfit_batches: 10
+
+  accumulate_grad_batches: 8
+  benchmark: true
+  deterministic: false
+
+  #profiler:
+  #  _target_: lightning.pytorch.profilers.PyTorchProfiler
+  #  dirpath: ${paths.output_dir}/profiler
+  #  filename: trace
+  #  export_to_chrome: true
+  #  record_module_names: true   # names like transformer_blocks.3.attn in the trace
+  #  record_shapes: false        # true makes traces much bigger
+  #  profile_memory: false
+  #  with_stack: false
+  #  schedule:
+  #    _target_: torch.profiler.schedule
+  #    wait: 5      # skip the first batches: compilation + recompiles
+  #    warmup: 1
+  #    active: 1     
+  #    repeat: 1
+
+data:
+  pin_memory: true
+  num_workers: 2
+
+logger:
+  tensorboard:
+    name: ${task_name}

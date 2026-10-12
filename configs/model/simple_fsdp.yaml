@@ -1,0 +1,66 @@
+_target_: src.models.simple.SimpleModuleFSDP
+defaults:
+  - base
+  - lora@net_configs.ffn.lora_config: default
+  - criterion: mse
+  - grad_clip_warmdown: grad_clip_schema
+  - override lr_scheduler: default
+  - override lr_scheduler/scheduler: plateau
+  - override optim_param_groups: default
+  - override optim_param_groups/groups: [no_decay]
+  - _self_
+
+pop_frozen_keys_from_ckpt: true
+
+net_configs:
+  _target_: src.schemas.fsdp_schemas.FSDPNetConfigs
+  ffn:
+    init_fn: src.models.net.simple.SimpleNet
+    init_kwargs:
+      input_dim: 2
+      hidden_dim: 10
+      out_dim: 2
+    eval_mode: false
+    grad: false
+    lora_config:
+      target_modules: ["net.0.ffn.0", "net.2", "net.6"]
+    fsdp:
+      reshard_after_forward: true
+      shard_modules: src.models.net.simple.UpMLP
+      mp_policy:
+        param_dtype: bfloat16
+        reduce_dtype: float32
+    activation_checkpointing:
+      ac_modules: [src.models.net.simple.UpMLP]
+    compile_config:
+      compile: true
+      compile_modules: [src.models.net.simple.UpMLP]
+      fullgraph: true
+      mode: default
+    dtype_config:
+      active_dtype: float32
+      frozen_dtype: bfloat16
+      buffer_dtype: null
+      cast_dtype: true
+
+grad_clip_warmdown:
+  warmdown_steps: 1000
+  base_grad_norm: 1.
+  max_grad_norm: 5.
+
+criterion:
+  reduction: mean
+
+lr_scheduler:
+  monitor: train/loss
+
+optim_param_groups:
+  groups:
+    no_decay:
+      pattern: "*lora_A*"
+
+    lora_b:
+      pattern: "*lora_B*"
+      lr: 1.0e-3
+      options:
+        betas: [0.9, 0.99]

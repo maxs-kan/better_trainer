@@ -1,0 +1,86 @@
+# Data-free PDD LoRA of MiniMax-H3 (diffusers integration), text-to-video+audio (t2va packed layout).
+_target_: src.models.mini_max_h3_pdd_model.MiniMaxH3PDDTrainer
+
+defaults:
+  - base
+  - override optim_param_groups: default
+  - override optim_param_groups/groups: [no_decay]
+  - _self_
+
+pretrained_model_name_or_path: ${paths.h3_model_dir}
+transformer_subfolder: transformer
+
+seed: ${seed}
+pop_frozen_keys_from_ckpt: true
+
+trajectory_steps: 32
+L_min: 4
+L_max: 8
+solver: midpoint
+video_loss_weight: 0.5
+audio_loss_weight: 0.5
+
+num_frames: 124
+height: 768
+width: 1344
+
+optimizer:
+  lr: 1.0e-4
+  weight_decay: 1.0e-4
+
+optim_param_groups:
+  groups:
+    heads:
+      pattern: "*proj_out.weight"   # video + audio head weights
+      lr: 1.0e-5
+    heads_no_decay:
+      pattern: "*proj_out.bias"     # video + audio head biases
+      lr: 1.0e-5
+      weight_decay: 0.0
+    no_decay:
+      pattern: "*lora_A*"           # weight_decay 0.0 comes from groups/no_decay.yaml
+
+net_configs:
+  _target_: src.schemas.fsdp_schemas.FSDPNetConfigs
+  transformer:
+    init_fn: src.models.net.minimax_h3.build_meta_transformer
+    init_kwargs:
+      pretrained_model_name_or_path: ${model.pretrained_model_name_or_path}
+      subfolder: ${model.transformer_subfolder}
+      dtype: bfloat16
+    eval_mode: false
+    grad: false
+    lora_config:
+      r: 64
+      lora_alpha: 64
+      lora_dropout: 0.0
+      use_rslora: false
+      init_lora_weights: true
+      bias: none
+      target_modules: [to_q, to_k, to_v, to_out.0, ff.net.0.proj, ff.net.2, adaln_proj.linear]
+    fsdp:
+      reshard_after_forward: true
+      shard_modules:
+        - diffusers.models.transformers.transformer_minimax_h3.MiniMaxH3TransformerBlock
+        - diffusers.models.transformers.transformer_minimax_h3.MiniMaxH3TokenRefinerBlock
+      mp_policy:
+        param_dtype: bfloat16
+        reduce_dtype: float32
+        cast_forward_inputs: false
+    activation_checkpointing:
+      ac_modules:
+        - diffusers.models.transformers.transformer_minimax_h3.MiniMaxH3TransformerBlock
+    compile_config:
+      compile: true
+      compile_modules:
+        - diffusers.models.transformers.transformer_minimax_h3.MiniMaxH3TransformerBlock
+        - diffusers.models.transformers.transformer_minimax_h3.MiniMaxH3TokenRefinerBlock
+      fullgraph: true
+      mode: default
+      dynamic: null
+    dtype_config:
+      cast_dtype: true
+      active_dtype: float32
+      frozen_dtype: null
+      buffer_dtype: null
+      allow_custom_dtype_mix: true

@@ -1,0 +1,13 @@
+defaults:
+  - default
+
+accelerator: gpu
+num_nodes: 1
+strategy:
+  _target_: src.strategy.model_parallel_base.ParallelStrategyBase
+  data_parallel_size: ???
+  tensor_parallel_size: 1
+
+precision: 32-true
+use_distributed_sampler: false
+

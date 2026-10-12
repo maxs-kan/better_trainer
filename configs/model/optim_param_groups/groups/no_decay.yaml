@@ -1,0 +1,3 @@
+no_decay:
+  pattern: "*.bias"
+  weight_decay: 0.0

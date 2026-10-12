@@ -1,0 +1,4 @@
+defaults:
+  - optim_param_groups_schema
+  - groups: []
+  - _self_

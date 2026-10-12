@@ -1,0 +1,7 @@
+_target_: src.data.pdd_datamodule.PDDPromptDataModule
+train_index: ${paths.prompt_cache_train}
+# Prompt repeats = optimizer steps per trajectory (one block each); must equal model.trajectory_steps / model.L_min.
+block_steps: 8
+num_workers: 2
+pin_memory: true
+seed: ${seed}
