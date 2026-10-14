@@ -120,7 +120,7 @@ PDD has a data-free algorithm, so only prompts are needed for training, not vide
 
 
 ### Results
-The model was trained for 2500 optimizer steps on 4 H100 GPUs (8 days of compute), one trajectory per device per step, so 10k unique trajectories (prompts) in total. Each trajectory is split into 32 / L_min = 8 blocks, one block per batch, and the gradient accumulation step = 8, i.e. one optimizer step per full trajectory.
+The model was trained for 2500 optimizer steps on 4 H100 GPUs (8 days of compute), one trajectory per device, so 10k unique trajectories (prompts) in total. Each trajectory is split into 32 / L_min = 8 blocks, and the gradient accumulation step = 8, i.e. one optimizer step per full trajectory.
 
 After 2500 steps the 8 NFE student visually matches the quality of the 64 NFE teacher. For the same seed the global view
 (composition, camera, layout) may differ from the teacher's video, which is expected for PDD: the student is not trained to reproduce the teacher's sample for
